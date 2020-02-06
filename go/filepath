@@ -1,0 +1,17 @@
+目录结构
+/export/home/kk/test/filepath
+os.Args[0]
+  相对路径
+  在/export/home/kk/test/下使用.filepath启动，返回./filepath
+  在/export/home/kk/下，./test/filepath启动，返回./test/filepath
+  使用/export/home/kk/test/filepath启动，返回/export/home/kk/test/filepath，即绝对路径
+filepath.Dir(path string)
+  相对路径的目录
+  返回path除去最后一个元素，结尾不带分隔符
+  .
+  test
+  /export/home/kk/test
+filepath.Abs()
+  绝对路径
+  均返回 /export/home/kk/test
+  
