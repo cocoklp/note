@@ -49,6 +49,25 @@
 ! [图片](http://image.baidu.com/search/detail?ct=503316480&z=0&ipn=d&word=%E5%9B%BE%E7%89%87&hs=0&pn=1&spn=0&di=8910&pi=0&rn=1&tn=baiduimagedetail&is=0%2C0&ie=utf-8&oe=utf-8&cl=2&lm=-1&cs=1208538952%2C1443328523&os=979813124%2C369989102&simid=62453799%2C522850401&adpicid=0&lpn=0&ln=30&fr=ala&fm=&sme=&cg=&bdtype=0&oriquery=&objurl=http%3A%2F%2Fa4.att.hudong.com%2F21%2F09%2F01200000026352136359091694357.jpg&fromurl=ippr_z2C%24qAzdH3FAzdH3Fp7rtwg_z%26e3Bkwthj_z%26e3Bv54AzdH3Ftrw1AzdH3Fw9_d8_al_a8daaaaaadmncd8nmnclal8ml9nc0_3r2_z%26e3Bip4s&gsm=1&islist=&querylist=)
 
 ## 
-![pic]: http://image.baidu.com/search/detail?ct=503316480&z=0&ipn=d&word=%E5%9B%BE%E7%89%87&hs=0&pn=1&spn=0&di=8910&pi=0&rn=1&tn=baiduimagedetail&is=0%2C0&ie=utf-8&oe=utf-8&cl=2&lm=-1&cs=1208538952%2C1443328523&os=979813124%2C369989102&simid=62453799%2C522850401&adpicid=0&lpn=0&ln=30&fr=ala&fm=&sme=&cg=&bdtype=0&oriquery=&objurl=http%3A%2F%2Fa4.att.hudong.com%2F21%2F09%2F01200000026352136359091694357.jpg&fromurl=ippr_z2C%24qAzdH3FAzdH3Fp7rtwg_z%26e3Bkwthj_z%26e3Bv54AzdH3Ftrw1AzdH3Fw9_d8_al_a8daaaaaadmncd8nmnclal8ml9nc0_3r2_z%26e3Bip4s&gsm=1&islist=&querylist=
+[pic]: http://image.baidu.com/search/detail?ct=503316480&z=0&ipn=d&word=%E5%9B%BE%E7%89%87&hs=0&pn=1&spn=0&di=8910&pi=0&rn=1&tn=baiduimagedetail&is=0%2C0&ie=utf-8&oe=utf-8&cl=2&lm=-1&cs=1208538952%2C1443328523&os=979813124%2C369989102&simid=62453799%2C522850401&adpicid=0&lpn=0&ln=30&fr=ala&fm=&sme=&cg=&bdtype=0&oriquery=&objurl=http%3A%2F%2Fa4.att.hudong.com%2F21%2F09%2F01200000026352136359091694357.jpg&fromurl=ippr_z2C%24qAzdH3FAzdH3Fp7rtwg_z%26e3Bkwthj_z%26e3Bv54AzdH3Ftrw1AzdH3Fw9_d8_al_a8daaaaaadmncd8nmnclal8ml9nc0_3r2_z%26e3Bip4s&gsm=1&islist=&querylist=
 
 there ![pic]
+
+
+# 代码框
+## 单行用 ` `
+`test 1`
+## 多行用3个
+```
+test 2
+```
+# 表格 todo
+
+# 强调
+*字体倾斜*
+_字体倾斜_
+**字体加粗**
+__字体加粗__
+
+# 删除线
+~~删除~~
