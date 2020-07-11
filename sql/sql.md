@@ -21,3 +21,18 @@ mysqldump -hhost -Pport -upin -ppassword database tablename --skip-lock-tables >
 只导出表结构
 导入
 mysql -hhost -Pport -upin -ppassword database tablename --skip-lock-tables < filename
+
+
+# sql 没有bool型，会自动转为tinyint存储，0-false，1-true
+
+# offset
+	随着offset增大，执行效率会下降
+	select * from test where val=4 limit 300000,5; 
+	执行过程
+		查询到索引叶子节点数据
+		根据叶子节点上的主键去聚簇索引上查询需要的全部字段值
+		然后过滤掉前 300000 条数据，取出最后5条
+	select * from test a inner join (select id from test where val=4 limit 300000,5) b on a.id=b.id
+			
+
+varchar() 存的是字符，比如varchar(1)可以存一个汉字/一个英文字母

@@ -57,3 +57,27 @@ NTP synchronized: yes
 //设置硬件时间为18年6月11日10点10分0秒
 # hwclock --set --date '2018-06-11 10:10:00'
 ```
+重复：
+ for ((i=1;i<=100;i++)); do go run offset.go; done
+
+ curl -g -6 -H"Host:waf.ipv6.com" http://[2402:db40:1570:11c3:0000:0000:0000:0025]:80
+
+ curl支持SNI
+curl -k -v 'https://visx.com:8443/' --resolve "visx.com:8443:127.0.0.1"
+
+
+Linux下sz下载文件超过4G
+	scp
+	ftp
+	nc
+	icmp
+	文件切割：
+		文件切割
+			cat xxx.tar |split  -b 2G - xxx.tar.
+			会按2G文件进行切割，切割后的文件 xxx.tar.aa xxx.tar.ab xxx.tar.ac
+		下载到本地
+			sz xxx.tar.a* 
+		合并
+			cat xxx.tar.a* > xxx.tar
+			哈希验证正确性
+
