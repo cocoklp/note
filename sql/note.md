@@ -17,3 +17,11 @@
 ```
 select * from tb1 where tb1_col1 in (select tb2_col1 from tb2 as s where tb2_col2 ='value');
 ```
+
+引擎
+===
+InnoDB支持事务，MyISAM不支持。
+InnoDB支持外键，MyISAM不支持。
+InnoDB是聚集索引，数据文件和索引绑在一起，必须要有主键，通过主键索引效率很高。
+InnoDB不保存具体行数，MyISAM保存，所以获取count时MyISAM更快。
+MyISAM是表锁，并且默认优先写操作，所以读写频繁用InnoDB
