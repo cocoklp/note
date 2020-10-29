@@ -138,7 +138,7 @@ elk：
         查找路由表。
     外网访问pod：
         service。
-
+    
     Flannel： 集群中不同节点主机创建的docker容器都具有全集群唯一的虚拟IP地址，并且在ip地址之间建立一个覆盖网络，将数据包原封不动地传递到目标容器内。
     etcd flannel
     etcd 存储管理 flannel 可分配的ip地址段资源。
@@ -356,3 +356,164 @@ error execution phase preflight: couldn't validate the identity of the API Serve
 kubeadm token create
  openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
 
+
+
+私有仓库
+/etc/docker/daemon.json
+"insecure-registries":["https://hub.atguigu.com"]
+
+docker compose
+通过一个配置文件来管理多个docker容器。
+https://blog.csdn.net/pushiqiang/article/details/78682323
+
+安装harbor
+压缩包
+http://github.com/goharbor/harbor/releases/download/v1.2.0/harbor-offline-installer-v1.2.0.tgz
+解压
+    tar -zxvf harbor-offline-installer-v1.2.0.tgz
+    mv harbor /usr/local/
+    vim harbor.cfg
+        ```
+            hostname hub.atguigu.com
+            protocal https
+        ```
+​    创建ssl_cert目录   
+​        mkdir -p /data/cert
+​        cd !$
+​    创建证书
+​        openssl genrsa -des3 -out server.key 2048
+​        openssl req -new -key server.key -out server.csr
+​        cp server.key server.key.org
+​        openssl rsa -in server.key.org -out  server.key
+​        openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+​        mkdir /data/cert
+​        chomd -R 777 /data/cert
+​        chmod a+x *
+​    运行脚本安装
+​        ./install.sh
+​    各节点和windows修改host 192.168.0.37 hub.atguigu.com
+​    访问测试
+​    docker pull wangyanglinux/myapp:v1
+kubectl get pod -o wide
+[root@k8s-master ~]# kubectl get pod -o wide
+NAME                READY   STATUS    RESTARTS   AGE   IP           NODE        NOMINATED NODE   READINESS GATES
+nginx-deployement   1/1     Running   0          45m   10.244.2.2   k8s-node1   <none>           <none>
+[root@k8s-master ~]# curl 10.244.2.2
+Hello MyApp | Version: v1 | <a href="hostname.html">Pod Name</a>
+
+ docker ps -a |grep nginx
+ kubectl delete pod nginx-deployement 
+
+ kubectl expose --help
+kubectl run nginx-deployement --image=hub.atguigu.com/library/myapp:v1 --port=80 --replicas=3
+v1.18.0后，replicas废弃 https://blog.51cto.com/14268033/2493152 创建多个副本
+kubectl expose deployment nginx --port=30000 --target-port=80
+
+
+#资源清单
+集群资源分类
+    名称空间级别的资源
+        kubeadm 安装 k8ss时，会默认把组件放到kube-system下，所以kubectl get pod看不到，得指定 -n kube-system
+    集群级别资源
+        namespace
+        node
+        role
+        无论在哪里都能看到，不用指定名称空间。
+    元数据型资源
+        HPA 
+
+资源： k8s中所有的内容能够都抽象为资源，被实例化后叫做对象。
+    工作负载型资源： pod rs deployment statefulset daemonset job cronjob
+
+
+
+
+yaml格式
+    不允许使用tab键，只能使用空格
+    缩进的空格数目不重要，只要相同层级的元素左侧对其即可
+    #标识注释，从该字符到行尾都会被解释忽略
+支持的数据结构
+    对象类型
+        键值对的集合，又称为映射/哈希/字典
+        ```
+        对象的一组键值对，用冒号结构表示。
+        name: steve
+        age: 18
+        ```
+        ```
+        也支持将所有键值对写成一个行内对象
+        hash: { name: steve, age: 18 }
+        ```
+    数组类型
+        一组按次序排列的值，序列/列表
+        ```
+        一组连词线开头的行构成一个数组
+        animal
+        - cat
+        - dog
+        ```
+        ```
+        也可以采用行内表示法
+        animal: {cat, dog}
+        ```
+    复合结构：对象和数组结合使用，形成复合结构。
+    ```
+    language:
+    - ruby
+    - pytho
+    websites:
+    yaml: yaml.org
+    ruby: ruby-lang.org
+    ```
+    纯量类型
+        最基本的，不可再分的值
+        字符串 布尔值 整数 浮点数 null（用 ~ 表示） 时间 日期
+    yaml允许使用!!强制转换数据类型
+    e: !!str 123 #强制转成字符串
+    字符串说明
+        不使用引号除非包含了空格或特殊字符,可放在单引号或双引号中
+        str: this is a string
+        str: 'nei : string'
+        str: "nei : df"  # 双引号不会对特殊字符转义
+        如果单引号之中还有单引号，需要连续使用两个单引号进行转义
+        str: 'labor''s day'
+        字符串可以写成多行，从第二行开始必须有一个空格缩进，换行符会被转为空格
+        str: 这是一段
+         多行
+         字符串
+
+常用字段的解释
+kubectl explain pod
+    创建pod时必须存在的属性
+    version                     string  k8sapi的版本 kubectl api-versions查看
+    kind                        string  yaml文件定义的资源类型和角色，比如pod
+    metadata                    object  元数据对象，固定值metadata
+    metadata.name               string  元数据对象的名字，比如命名的pod的名字
+    metadata.namespace          string  元数据对象的名字，比如明明的pod的名字
+    spec                        object  详细定义对象，固定值 Spec
+    spec.containers[]           list    spec对象的容器列表
+    spec.containers[].name      string  容器的名字，默认随机值
+    spec.containers[].image     string  要用到的镜像名
+    spec.containers[].imagePullPolicy      string  镜像下载策略，always（默认值，从远程拉取） never（使用本地） ifnotpresent（优先用本地，本地没有去拉取）
+    spec.containers[].command[] list    指定容器的指令
+    spec.containers[].args[] list       指定容器的指令的参数
+    spec.containers[].workingDir string    指定容器的工作目录
+    spec.containers[].ports[] list         指定容器需要监听的端口号
+    spec.containers[].ports[].name string  指定端口名称
+    spec.containers[].ports[].containerPort string  容器要监听的端口号
+    spec.containers[].ports[].hostPort      string  容器所在主机需要监听的端口号，默认与containerPort相同
+    spec.containers[].ports[].Protocol      string  指定端口协议，TCP（缺省）/UDP
+    spec.containers[].env[]  list  指定容器运行前需设置的环境变量列表
+
+创建pod
+kubectl create -f pod.yaml 或 kubectl apply -f pod.yaml
+查看pod状态
+kubectl get pod
+查看pod信息
+kubectl describe pod myapp-pod
+查看日志
+kubectl logs myapp-pod -c test
+删除pod
+kubectl delete pod myapp-pod
+
+容器的生命周期
