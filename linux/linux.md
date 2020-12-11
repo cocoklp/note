@@ -1,5 +1,7 @@
-curl记录响应时间：
-	新建文件 format.txt{
+# curl记录响应时间：
+​	新建文件
+
+``` format.txt{
 	    time_namelookup:  %{time_namelookup}\n
 	       time_connect:  %{time_connect}\n
 	    time_appconnect:  %{time_appconnect}\n
@@ -10,10 +12,16 @@ curl记录响应时间：
 	         time_total:  %{time_total}\n	
 	}
 	curl -i -w "@curl-format.txt" -o /dev/null -d "id=xxx&pwd=xxx" -X POST http://localhost:8080/api/login
+```
 
-curl -w
-	诊断问题
-	curl -X POST http://10.226.193.42:8900/v1/regions/cn-north-1/wafInstanceIds/testtest810-waf/domain:listMainCfg -H "userPin:testtest810" -d '{"req":{"pageSize":100}}'  -w  "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_nslookup:%{time_namelookup}\ntime_total: %{time_total}\n" -o /dev/null
+# curl -w
+​	诊断问题
+
+```
+curl -X POST http://10.226.193.42:8900/v1/regions/cn-north-1/wafInstanceIds/testtest810-waf/domain:listMainCfg -H "userPin:testtest810" -d '{"req":{"pageSize":100}}'  -w  "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_nslookup:%{time_namelookup}\ntime_total: %{time_total}\n" -o /dev/null
+```
+
+#  空设备
 
 /dev/null
 	空设备，丢弃一切写入其中的数据，但报告写入操作成功，读取会得到一个EOF
@@ -21,7 +29,10 @@ curl -w
 	cat $filename 2> /dev/null  :: 			
 	cat $filename 1> /dev/null ： 文件不存在时会打印错误. 标准输出
 
-修改机器时间
+# 时间
+
+## 修改机器时间
+
 ```
 //将时间改为10点10分
 # date -s 10:10
@@ -32,7 +43,8 @@ curl -w
 //将日期改为2018年6月11日10点10分，并覆盖硬件时间
 # date -s '2018-06-11 10:10:00' && hwclock -w
 ```
-查看本地系统时间
+## 查看本地系统时间
+
 ```
 date
 timedatectl status
@@ -47,12 +59,14 @@ NTP synchronized: yes
       DST active: n/a
 
 ```
-系统时间覆盖硬件时间
+## 系统时间覆盖硬件时间
+
 ```
 # clock -w
 # hwclock -w 
 ```
-设置硬件时间
+## 设置硬件时间
+
 ```
 //设置硬件时间为18年6月11日10点10分0秒
 # hwclock --set --date '2018-06-11 10:10:00'
@@ -64,7 +78,6 @@ NTP synchronized: yes
 
  curl支持SNI
 curl -k -v 'https://visx.com:8443/' --resolve "visx.com:8443:127.0.0.1"
-
 
 Linux下sz下载文件超过4G
 	scp
@@ -81,3 +94,6 @@ Linux下sz下载文件超过4G
 			cat xxx.tar.a* > xxx.tar
 			哈希验证正确性
 
+# 查看centos版本
+
+cat /etc/redhat-releaseuname -a
