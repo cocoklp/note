@@ -1,8 +1,133 @@
+[Docker & docker-compose](#Docker & docker-compose)
+
+[修改镜像源](#修改镜像源)
+
 [构建镜像](#构建镜像)
 
 [运行镜像](#运行镜像)
 
-[docker-compose](#docker-compose)
+
+
+# Docker & docker-compose
+
+l Docker
+
+安装依赖后再安装，rpm -ivh 命令
+
+ 
+
+https://blog.csdn.net/sessionsong/article/details/102628738
+
+ 
+
+ sudo rpm -ivh docker-ce-18.09.9-3.el7.x86_64.rpm 
+
+ 
+
+l docker-compose
+
+ 
+
+https://docs.docker.com/compose/install/#install-compose
+
+ 
+
+sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+ 
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+ 
+
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+# 修改镜像源
+
+ /etc/docker/daemon.json
+
+
+
+
+
+# docker 命令
+
+## docker ps
+
+https://blog.csdn.net/woshimeihuo/article/details/90209779
+
+```
+CONTAINER ID（container id ） ：顾名思义 ,容器ID的意思，可以通过这id找到唯一的对应容器
+IMAGE （image）：该容器所使用的镜像
+COMMAND （command）：启动容器时运行的命令
+CREATED （created）：容器的创建时间，显示格式为”**时间之前创建“
+STATUS （status）：容器现在的状态，状态有7种：created（已创建）|restarting（重启中）|running（运行中）|removing（迁移中）|paused（暂停）|exited（停止）|dead
+PORTS （ports）:容器的端口信息和使用的连接类型（tcp\udp）
+NAMES （names）:镜像自动为容器创建的名字，也唯一代表一个容器
+```
+
+![img](https://images2015.cnblogs.com/blog/697113/201609/697113-20160916150735445-515141805.jpg)
+
+
+
+# 构建镜像 
+
+## 使用Dockerfile
+
+```
+FROM centos:7
+WORKDIR /app
+USER root
+COPY . .
+
+CMD ["./main"]
+```
+
+FROM: 基础镜像。
+
+```
+package main
+
+import (
+	"io"
+	"log"
+	"net/http"
+)
+
+// hello world, the web server
+func HelloServer(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, "hello, world!\n")
+}
+
+func main() {
+	http.HandleFunc("/hello", HelloServer)
+	err := http.ListenAndServe(":12345", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
+```
+
+go build main.go 得到main二进制文件后，docker build -t hellodocker:v1 . 得到镜像
+
+docker images可以查看镜像信息
+
+docker run 创建一个新的容器并运行
+
+docker run命令
+
+```
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+OPTIONS:
+  -d 后台运行容器
+  -i 以交互模式运行
+  -t 为容器分配一个伪输入终端，it通常同时使用。
+  -P 随即映射端口
+  -p 指定端口映射 -p 主机port:容器port
+  不指定端口的话，容器外不能访问
+  -name="" 指定容器名称
+  -v 绑定一个卷
+```
 
 
 
