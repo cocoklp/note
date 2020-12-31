@@ -10,7 +10,7 @@
 
 # Docker & docker-compose
 
-l Docker
+## Docker
 
 安装依赖后再安装，rpm -ivh 命令
 
@@ -24,7 +24,15 @@ https://blog.csdn.net/sessionsong/article/details/102628738
 
  
 
-l docker-compose
+containerd.io - daemon to interface with the OS API (in this case, LXC - Linux Containers), essentially decouples Docker from the OS, also provides container services for non-Docker container managers
+
+docker-ce - Docker daemon, this is the part that does all the management work, requires the other two on Linux
+
+docker-ce-cli - CLI tools to control the daemon, you can install them on their own if you want to control a remote Docker daemon
+
+
+
+## docker-compose
 
  
 
@@ -188,4 +196,56 @@ networks:
 ```
 
 docker-compose up -d
+
+
+
+# 日志
+
+docker logs打印出的是docker容器在控制台上输出的信息。
+
+
+
+
+
+# 报错
+
+##  docker run 报 structure needs cleaning
+
+需清理docker system的文件系统
+
+du -hs /var/lib/docker/ 查看磁盘使用情况
+
+docker system df 查看docker的磁盘使用情况
+
+```
+[root@k8s1master ~]# docker system df
+TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
+Images              10                  10                  1.213GB             47.93MB (3%)
+Containers          19                  19                  0B                  0B
+Local Volumes       9                   0                   48B                 48B (100%)
+Build Cache         0                   0                   0B                  0B
+[root@k8s1master ~]# 
+```
+
+docker system prune 可以删除关闭的容器无用的数据、卷、网络以及没有tag的镜像
+
+docker system prune -a 会把没有使用的镜像都删掉 **慎用**
+
+迁移docker目录：
+
+https://blog.csdn.net/weixin_32820767/article/details/81196250
+
+
+
+## 使用dockerd排查错误
+
+https://www.imooc.com/article/details/id/70557
+
+https://www.jianshu.com/p/93518610eea1
+
+https://zhuanlan.zhihu.com/p/119401647
+
+
+
+
 

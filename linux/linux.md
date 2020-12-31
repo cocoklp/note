@@ -21,13 +21,39 @@
 curl -X POST http://10.226.193.42:8900/v1/regions/cn-north-1/wafInstanceIds/testtest810-waf/domain:listMainCfg -H "userPin:testtest810" -d '{"req":{"pageSize":100}}'  -w  "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_nslookup:%{time_namelookup}\ntime_total: %{time_total}\n" -o /dev/null
 ```
 
-#  空设备
+#  文件重定向
 
 /dev/null
 	空设备，丢弃一切写入其中的数据，但报告写入操作成功，读取会得到一个EOF
 	黑洞，写入的内容会永远丢失，用于脚本和命令行
 	cat $filename 2> /dev/null  :: 			
 	cat $filename 1> /dev/null ： 文件不存在时会打印错误. 标准输出
+
+0：stdin标准输入
+
+1：stdout标准输出
+
+2：stderr标准错误
+
+## nohup command>/dev/null 2>&1 &
+
+command >/dev/null
+
+ 相当于 command 1 > /dev/null， command产生了标准输出，冲顶先到/dev/null中。
+
+command 1>a 2>&1 VS command 1>a 2>a
+
+   2>&1 标准错误等效于标准输出
+
+  command 1>a 2>&1 标准输出和错误都重定向到文件a中，且只打开一次文件。
+
+  command 1>1 2>1 标准输出和错误都重定向到文件a中，打开两次文件，stdout会被stderr覆盖。
+
+## exec
+
+exec永久重定向。
+
+
 
 # 时间
 
