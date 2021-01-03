@@ -93,7 +93,7 @@
 
 4. 修改harbor.yml
 
-   hostname certificate private_key路径
+   hostname certificate private_key路径，具体到文件名
 
 5. 依次 ./prepare ./install 安装  // 重启的话，需要先docker-compose down
 
