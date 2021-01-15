@@ -78,7 +78,7 @@ NAMES （names）:镜像自动为容器创建的名字，也唯一代表一个�
 
 
 
-# 构建镜像 
+# 构建镜像
 
 ## 使用Dockerfile
 
@@ -135,6 +135,75 @@ OPTIONS:
   不指定端口的话，容器外不能访问
   -name="" 指定容器名称
   -v 绑定一个卷
+```
+
+
+
+# 镜像
+
+镜像由一堆文件组成，最主要的文件是层
+
+Dockerfile中，大多数指令会生成一个层。
+
+```
+# 示例一，foo 镜像的Dockerfile
+# 基础镜像中已经存在若干个层了
+FROM ubuntu:16.04
+# RUN指令会增加一层，在这一层中，安装了 git 软件
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends git \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# 示例二，bar 镜像的Dockerfile
+FROM foo
+# RUN指令会增加一层，在这一层中，安装了 nginx
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends nginx \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+```
+
+假设ubuntu已经存在5层，那么打包后的foo有6层，bar有7层，其中与foo共享6层，所以系统中一共有7层。docker的各层之间都是由相关性的，系统在某个基础上再增加新的文件，所以只能由一个起始层，即根。FROM指令就是确定根的。
+
+## 多个FROM
+
+最终生成的镜像仍以最后一个FROM为准，之前的FROM会被抛弃。多个FROM中的每一条FROM指令都是一个构建阶段，可以将编译和运行环境分离。
+
+```
+# 编译阶段
+FROM golang:1.10.3
+ 
+COPY server.go /build/
+ 
+WORKDIR /build
+ 
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOARM=6 go build -ldflags '-w -s' -o server
+ 
+# 运行阶段
+FROM scratch
+ 
+# 从编译阶段的中拷贝编译结果到当前镜像中.0表示第一个阶段
+COPY --from=0 /build/server /
+ 
+ENTRYPOINT ["/server"]
+```
+
+golang:1.10.3镜像很大，且运行时并不需要，只在编译阶段使用即可。
+
+给阶段命名
+
+```
+# 编译阶段 命名为 builder
+FROM golang:1.10.3 as builder
+ 
+# ... 省略
+ 
+# 运行阶段
+FROM scratch
+ 
+# 从编译阶段的中拷贝编译结果到当前镜像中
+COPY --from=builder /build/server /
 ```
 
 

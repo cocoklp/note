@@ -350,3 +350,320 @@ option httpchk <method> <uri> <version>
    option httpchk HEAD /index.jsp HTTP/1.1\r\nHost:\ www.xxx.com
    ```
 
+
+
+
+
+# dataplane
+
+
+https://www.e-learn.cn/content/qita/2633565
+
+https://github.com/haproxytech/dataplaneapi
+
+http://114.67.72.40:9999/haproxy-status
+
+https://www.haproxy.com/documentation/hapee/1-9r1/reference/dataplaneapi/
+
+## version VS transaction
+
+POST  PUT DELETE 等写方法，需要再url中添加version以防冲突，如果写的version与配置文件中不符，会返回version mismatch
+
+transaction：
+
+​	事务，多条命令先存起来，然后一次执行。
+
+​	不同transaction之间是隔离的
+
+## 增加代理过程
+
+添加backend，给backend添加server，添加frontend并bind ip port，给frontend增加use_backend配置。
+
+1. initialize a transaction
+
+   ```
+   curl -X POST --user admin:123456 -H "Content-Type: application/json" http://114.67.72.40:5555/v2/services/haproxy/transactions?version=4
+   resp：
+   {"_version":4,"id":"edbf7220-5725-4f34-a1b4-cff8af344331","status":"in_progress"}
+   ```
+
+   后续请求携带id
+
+2. add backend
+
+   ```
+    curl -X POST -u admin:123456 -H "Content-Type: application/json" "http://114.67.72.40:5555/v2/services/haproxy/configuration/backends?transaction_id=2ad5391a-5f4f-4707-8664-ff3559290f66" -d '{"adv_check":"httpchk","balance":{"algorithm":"roundrobin"},"forwardfor":{"enabled":"enabled"},"httpchk_params":{"method":"GET","uri":"/check","version":"HTTP/1.1"},"mode":"http","name":"test_backendtr"}'
+   ```
+
+3. add server to backend
+
+   ```
+   curl -X POST --user admin:123456 \
+   -H "Content-Type: application/json" \
+   -d '{"name": "server1", "address": "114.67.81.96", "port": 9191, "check": "enabled", "maxconn": 30, "weight": 100}' \
+   "http://114.67.72.40:5555/v2/services/haproxy/configuration/servers?backend=test_backendtr&transaction_id=2ad5391a-5f4f-4707-8664-ff3559290f66"
+   ```
+
+4. add frontend
+
+   ```
+    curl -X POST -u admin:123456 -H "Content-Type: application/json" "http://114.67.72.40:5555/v2/services/haproxy/configuration/frontends?transaction_id=2ad5391a-5f4f-4707-8664-ff3559290f66" -d '{"default_backend":"test_backend","http_connection_mode":"http-keep-alive","maxconn":2000,"mode":"http","name":"test_frontendtr"}'
+   ```
+
+   
+
+5. bind ip port to frontend
+
+   ```
+   
+   curl -X POST --user admin:123456 \
+   -H "Content-Type: application/json" \
+   -d '{"name": "http", "address": "*", "port": 80}' \
+   "http://114.67.72.40:5555/v2/services/haproxy/configuration/binds?frontend=test_frontendtr&transaction_id=2ad5391a-5f4f-4707-8664-ff3559290f66"
+   ```
+
+6. add user_backend to frontend
+
+   backend switching rule
+
+   ```
+   curl -X POST --user admin:123456 -H "Content-Type: application/json" -d '{"id": 0, "name": "test_backendproxy","index":1}' "http://127.0.0.1:5555/v2/services/haproxy/configuration/backend_switching_rules?frontend=test_frontend&version=35"
+   ```
+
+   index: 必须是从零开始顺序递增的，否则会报out of range，如果有0 1 2 3四个，那么删除2后，变成0 1 2 三个，可以GET到index
+
+   ```
+    curl -X GET --user admin:123456 -H "Content-Type: application/json"  "http://127.0.0.1:8080/v2/services/haproxy/configuration/backend_switching_rules?frontend=test_frontend&version=32"
+   {"_version":36,"data":[{"index":0,"name":"test_backendtr"},{"index":1,"name":"test_backendproxy"}]}
+   ```
+
+    ![image-20210112174956718](C:\Users\kouliping\AppData\Roaming\Typora\typora-user-images\image-20210112174956718.png)
+
+7. commit transaction
+
+   ```
+   curl -X PUT --user admin:123456 -H "Content-Type: application/json" "http://127.0.0.1:5555/v2/services/haproxy/transactions/2ad5391a-5f4f-4707-8664-ff3559290f66"
+   ```
+
+   
+
+
+
+# base auth
+
+```
+package main
+
+import (
+	"encoding/base64"
+	"fmt"
+)
+
+func main() {
+	user := "admin"
+	pass := "123456"
+	encoded := base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
+	fmt.Println(encoded)
+}
+输出 YWRtaW46MTIzNDU2
+```
+
+
+
+curl -u admin:123456 等价于 curl -H "Authorization:Basic YWRtaW46MTIzNDU2"  // 注意Basic之后的空格。
+
+```
+package main
+
+import (
+	"bytes"
+	"context"
+	"crypto/tls"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+)
+
+const pulltimeout = 5000
+const pulltimes = 2
+
+func main() {
+	user := "admin"
+	pass := "123456"
+	encoded := base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
+	header := map[string]string{
+		"Authorization": "Basic " + encoded,
+	}
+	url := os.Args[1]
+	//rbody, e, _, hs := tryGetRespBodyWithHeaders("", url, pulltimeout, pulltimes, nil)
+	code, resp, hs, err := DoRequest("GET", url, "", header, nil, pulltimeout)
+	fmt.Println(time.Now())
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println(strings.HasSuffix(err.Error(), "connection timed out"))
+	}
+
+	headers := http.Header(hs)
+	fmt.Println(string(resp))
+	fmt.Println(code, err, hs, headers)
+}
+
+func tryGetRespBodyWithHeaders(host string, queryAddr string, timeout int64, tryTimes int,
+	inHeaders map[string]string) ([]byte, error, int, map[string][]string) {
+	var try int
+	var rbody []byte
+	var e error
+	var headers map[string][]string
+	for try < tryTimes {
+		try++
+		statusCode, body, hs, e := DoRequest("GET", queryAddr, host, inHeaders, nil, timeout)
+		if e == nil && statusCode >= http.StatusOK && statusCode < http.StatusBadRequest {
+			rbody = body
+			headers = hs
+			break
+		}
+	}
+	fmt.Printf("pulled webcache page[%s], length of body(bytes)[%d], error %v", queryAddr, len(rbody), e)
+	return rbody, e, try, headers
+}
+
+// reqType is one of HTTP request strings (GET, POST, PUT, DELETE, etc.)
+func DoRequest(reqType string, url string, host string, headers map[string]string, data []byte, timeoutMs int64) (int, []byte, map[string][]string, error) {
+	var reader io.Reader
+	if data != nil && len(data) > 0 {
+		reader = bytes.NewReader(data)
+	}
+
+	req, err := http.NewRequest(reqType, url, reader)
+	if err != nil {
+		return 0, nil, nil, err
+	}
+
+	if host != "" {
+		req.Host = host
+	}
+	// I strongly advise setting user agent as some servers ignore request without it
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	if headers != nil {
+		for k, v := range headers {
+			req.Header.Set(k, v)
+		}
+	}
+
+	var (
+		statusCode int
+		body       []byte
+		timeout    time.Duration
+		ctx        context.Context
+		cancel     context.CancelFunc
+		header     map[string][]string
+	)
+	timeout = time.Duration(time.Duration(timeoutMs) * time.Millisecond)
+	ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	req = req.WithContext(ctx)
+	err = httpDo(ctx, req, func(resp *http.Response, err error) error {
+		if err != nil {
+			return err
+		}
+
+		defer resp.Body.Close()
+		body, _ = ioutil.ReadAll(resp.Body)
+		statusCode = resp.StatusCode
+		header = resp.Header
+
+		return nil
+	})
+
+	return statusCode, body, header, err
+}
+
+// httpDo issues the HTTP request and calls f with the response. If ctx.Done is
+// closed while the request or f is running, httpDo cancels the request, waits
+// for f to exit, and returns ctx.Err. Otherwise, httpDo returns f's error.
+func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error) error) error {
+	// Run the HTTP request in a goroutine and pass thehe response to f.
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	/*
+		resp, err := client.Do(req)
+						fmt.Println(resp, err)
+												return err
+	*/
+
+	c := make(chan error, 1)
+	go func() { c <- f(client.Do(req)) }()
+	select {
+	case <-ctx.Done():
+		tr.CancelRequest(req)
+		<-c // Wait for f to return.
+		return ctx.Err()
+	case err := <-c:
+		return err
+	}
+}
+```
+
+
+
+# 添加vip
+
+```
+for i in {1..100}
+do
+  ifconfig eth0:$i netmask 255.255.255.0 up 166.111.69.$i
+done
+```
+
+如果不在同网段，需要在发起ping的机器上配置路由
+
+```
+两台机器：172.16.91.101 172.16.91.107
+在91.101上增加虚拟ip，92网段的
+ifconfig eth0:1 172.16.92.2 netmask 255.255.255.0 up
+由于不再同一个网段需要添加路由(与vip交互的机器上）：
+增加路由:route add -net 172.16.92.0 netmask 255.255.255.0 gw 172.16.91.101
+```
+
+
+
+重启后丢失，需要把执行脚本写到/etc/rcc.local中，并检查/etc/rc.local和/etc/rc.d/rc.local的执行权限。
+
+
+
+
+
+添加backend
+
+```
+curl -X POST -u admin:123456 -H "Content-Type: application/json" "http://114.67.72.40:5555/v2/services/haproxy/configuration/backends" -d `{"adv_check":"httpchk","balance":{"algorithm":"roundrobin"},"forwardfor":{"enabled":"enabled"},"httpchk_params":{"method":"GET","uri":"/check","version":"HTTP/1.1"},"mode":"http","name":"test_backend"}`
+```
+
+添加server到backend
+
+
+
+添加frontend
+
+```
+curl -X POST -u admin:123456 -H "Content-Type: application/json" "http://114.67.72.40:5555/v2/services/haproxy/configuration/frontends" -d `{"default_backend":"test_backend","http_connection_mode":"http-keep-alive","maxconn":2000,"mode":"http","name":"test_frontend"}`
+```
+
+添加bind到frontend
+
+
+
+
+
+frontend 怎么添加use_backend??？
+每调一次post接口，version自增1
+Add frontend,bind
+
+add backend,add server
