@@ -365,6 +365,18 @@ http://114.67.72.40:9999/haproxy-status
 
 https://www.haproxy.com/documentation/hapee/1-9r1/reference/dataplaneapi/
 
+## 安装
+
+https://github.com/haproxytech/dataplaneapi
+
+下载源代码，然后make build，进入build后，
+
+```
+./dataplaneapi --port 5555 -b /usr/sbin/haproxy -c /etc/haproxy/haproxy.cfg  -d 5 -r "service haproxy reload" -s "service haproxy restart" -u dataplaneapi -t /tmp/haproxy
+
+// -u dataplaneapi 要与 haproxy.conf 里的 userlist dataplaneapi一致
+```
+
 ## version VS transaction
 
 POST  PUT DELETE 等写方法，需要再url中添加version以防冲突，如果写的version与配置文件中不符，会返回version mismatch
@@ -631,6 +643,20 @@ ifconfig eth0:1 172.16.92.2 netmask 255.255.255.0 up
 由于不再同一个网段需要添加路由(与vip交互的机器上）：
 增加路由:route add -net 172.16.92.0 netmask 255.255.255.0 gw 172.16.91.101
 ```
+
+
+
+https://blog.csdn.net/u012599988/article/details/82683440
+
+ip addr del 10.1.1.1/24 dev ens33
+
+ip addr add 10.1.1.1/24 dev ens33
+
+同一网段删除会会有影响，
+
+/sbin/sysctl net.ipv4.conf.eth0.promote_secondaries=1
+
+echo "net.ipv4.conf.eth0.promote_secondaries=1" >>/etc/sysctl.conf
 
 
 
