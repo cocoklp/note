@@ -6,6 +6,9 @@
 2. 查看主机 ip配置，cmd 中ipconfig，关注以太网的ipaddr netmask gateway，据此配置虚拟机
 3. ifconfig查看网卡，ens-33
 
+动态获取，网关2结尾
+https://segmentfault.com/q/1010000002417223
+
 ```
 vim /etc/sysconfig/network-scripts/ifcfg-ens-33
 TYPE="Ethernet"
