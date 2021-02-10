@@ -6,6 +6,9 @@
 2. 查看主机 ip配置，cmd 中ipconfig，关注以太网的ipaddr netmask gateway，据此配置虚拟机
 3. ifconfig查看网卡，ens-33
 
+动态获取，网关2结尾
+https://segmentfault.com/q/1010000002417223
+
 ```
 vim /etc/sysconfig/network-scripts/ifcfg-ens-33
 TYPE="Ethernet"
@@ -130,6 +133,7 @@ ln -s /usr/local/bin/docker-compose /use/bin/docker-compose
 安装harbor
 
 https://goharbor.io/docs/2.1.0/install-config/
+<<<<<<< HEAD
 
 
 
@@ -156,3 +160,5 @@ GenericName[en_US]=
 Icon=/usr/local/src/GoLand-2019.2.3/bin/goland.png
 [root@zdwork ~]#
 ```
+=======
+>>>>>>> 8506f591f8c81b37c2c45be48caa3bef22dd9815
