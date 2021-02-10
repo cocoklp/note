@@ -130,3 +130,29 @@ ln -s /usr/local/bin/docker-compose /use/bin/docker-compose
 安装harbor
 
 https://goharbor.io/docs/2.1.0/install-config/
+
+
+
+# 添加快捷方式到桌面
+
+http://www.zh-go.com/index.php/2019/10/20/centos-7-%E5%AE%89%E8%A3%85goland/
+
+vim /root/桌面/goland.desktop
+内容如下：
+
+```go
+[root@zdwork ~]# cat 桌面/goland.desktop
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=JetBrains GoLand 2019.2.3
+Type=Application
+Terminal=false
+Name[en_US]=JetBrains GoLand 2019.2.3
+Exec=/usr/local/src/GoLand-2019.2.3/bin/goland.sh
+Comment[en_US]=GoLand-2019.2.3
+Comment=GoLand-2019.2.3
+GenericName[en_US]=
+Icon=/usr/local/src/GoLand-2019.2.3/bin/goland.png
+[root@zdwork ~]#
+```
