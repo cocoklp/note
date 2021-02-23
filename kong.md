@@ -147,11 +147,51 @@ service:
 
 route for service:
 
+# 插件
+
+## ip-restriction
+
+可以在service、router、consumer、全局四个维度添加黑白名单。ipv4、ipv6均支持。
+
+### service：
+
+添加白名单
+
+curl -X POST http://127.0.0.1:8001/services/service/plugins     --data "name=ip-restriction"      --data "config.whitelist=54.13.21.1"     --data "consumer.id=45c08aeb-c08c-409c-a573-38bffdb9f204"
+
+更新白名单
+
+覆盖更新
+
+ curl -X PUT http://127.0.0.1:8001/services/service/plugins/e0a66af3-ef02-4afc-918a-fb348eca442e     --data "name=ip-restriction"      --data "config.whitelist=54.13.21.1"  --data "config.whitelist=54.13.21.2"   --data "consumer.id=45c08aeb-c08c-409c-a573-38bffdb9f204"
+
+获取白名单
+
+curl -X GET http://127.0.0.1:8001/services/service/plugins/e0a66af3-ef02-4afc-918a-fb348eca442e     --data "name=ip-restriction"      --data "config.whitelist=54.13.21.1"  --data "config.whitelist=54.13.21.2"   --data "consumer.id=45c08aeb-c08c-409c-a573-38bffdb9f204"
+
+删除白名单
+
+curl -X DELETE http://127.0.0.1:8001/services/service/plugins/e0a66af3-ef02-4afc-918a-fb348eca442e     --data "name=ip-restriction"      --data "config.whitelist=54.13.21.1"  --data "config.whitelist=54.13.21.2"   --data "consumer.id=45c08aeb-c08c-409c-a573-38bffdb9f204"
+
+禁用
+
+curl -X PUT http://127.0.0.1:8001/services/service/plugins/5d4d52df-c623-4fef-ab35-308e9b16aba3     --data "name=ip-restriction"      --data "enabled=false"
+
+### 获取真实ip
+
+https://www.imooc.com/article/288036
+
+-e “KONG_TRUSTED_IPS=0.0.0.0/0,::/0”
+-e “KONG_REAL_IP_HEADER=X-Forwarded-For”   // 当前镜像是x-real-ip
 
 
 
 
+## admin api
 
+ 根据service_id获取route
+
+curl -X GET http://127.0.0.1:8001/services/773e3a07-fb7b-4459-93ed-b9fda63cd037/routes
 
 
 
