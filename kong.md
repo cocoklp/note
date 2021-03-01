@@ -1,4 +1,6 @@
 kong
+https://www.cnblogs.com/zhoujie/p/kong2.html
+https://www.cnblogs.com/chenjinxi/p/8724564.html
 
 调kong的api  主要涉及consumer、auth key / hmac 、acl 这几个插件
 
@@ -195,5 +197,44 @@ curl -X GET http://127.0.0.1:8001/services/773e3a07-fb7b-4459-93ed-b9fda63cd037/
 
 
 
+service：
+
+{"host":"10.12.4.71","created_at":1614190247,"connect_timeout":60000,"id":"f9debed0-e423-435e-82bb-61e233212545","protocol":"http","name":"klptest","read_timeout":60000,"port":9090,"path":null,"updated_at":1614190247,"retries":5,"write_timeout":60000,"tags":null,"client_certificate":null}
+
+route
+
+{"id":"e528cc4a-81de-4aab-9451-bc708b523863","path_handling":"v0","paths":["\/klp\/"],"destinations":null,"headers":null,"protocols":["http","https"],"methods":["GET"],"snis":null,"service":{"id":"f9debed0-e423-435e-82bb-61e233212545"},"name":"klptest_9090","strip_path":false,"preserve_host":false,"regex_priority":0,"updated_at":1614190247,"sources":null,"hosts":null,"https_redirect_status_code":426,"tags":null,"created_at":1614190247}
 
 
+
+
+
+
+
+创建service：
+
+ curl -X POST http://127.0.0.1:8001/services --data "host=114.67.72.40" --data "protocol=http" --data "name=klptest" --data "port=9090"
+
+{"host":"10.12.4.71","created_at":1614190935,"connect_timeout":60000,"id":"50ff57cf-b4c9-4aba-95d6-6be674f6b364","protocol":"http","name":"klptest","read_timeout":60000,"port":9090,"path":null,"updated_at":1614190935,"retries":5,"write_timeout":60000,"tags":null,"client_certificate":null}
+
+ 
+
+创建route
+
+curl -X POST http://127.0.0.1:8001/routes --data "name=klptest_9090" --data "paths=/klp/"  --data "protocols=http" --data "methods=GET" --data "service.id=50ff57cf-b4c9-4aba-95d6-6be674f6b364"
+
+{"id":"31a1925c-61dc-4673-a1a4-19a771cb2594","path_handling":"v0","paths":["\/klp\/"],"destinations":null,"headers":null,"protocols":["http"],"methods":["GET"],"snis":null,"service":{"id":"50ff57cf-b4c9-4aba-95d6-6be674f6b364"},"name":"klptest_9090","strip_path":true,"preserve_host":false,"regex_priority":0,"updated_at":1614191494,"sources":null,"hosts":null,"https_redirect_status_code":426,"tags":null,"created_at":1614191494}
+
+
+
+添加黑白名单
+
+route：
+
+ curl -X POST http://127.0.0.1:8001/routes/31a1925c-61dc-4673-a1a4-19a771cb2594/plugins     --data "name=ip-restriction"     --data "config.blacklist=114.67.81.96"  
+
+全局指定route
+
+curl -X POST http://127.0.0.1:8001/plugins     --data "name=ip-restriction"     --data "config.blacklist=114.67.71.44"  --data "route.id=31a1925c-61dc-4673-a1a4-19a771cb2594"
+
+在路径中指定routeid和使用全局的接口在参数中指定routeid效果一样。
