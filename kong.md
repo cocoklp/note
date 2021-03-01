@@ -1,6 +1,75 @@
 kong
+
+# 源码安装(失败)
+
+## 安装依赖包
+
+https://docs.konghq.com/install/source/
+
+准备：
+
+ yum -y install patch
+
+yum install -y zlib-devel
+
+yum install -y gcc-c++
+
+yum install libyaml-devel libyaml
+
+git clone git@github.com:Kong/kong-build-tools.git
+
+./kong-build-tools/openresty-build-tools/kong-ngx-build     --prefix deps     --work work     --openresty 1.17.8.2     --openssl 1.1.1i     --kong-nginx-module master     --luarocks 3.4.0     --pcre 8.44     --jobs 6     --force
+
+export OPENSSL_DIR**=**$(pwd)/deps/openssl 
+export PATH**=**$(pwd)/deps/openresty/bin:$PATH 
+export PATH**=**$(pwd)/deps/openresty/nginx/sbin:$PATH 
+export PATH**=**$(pwd)/deps/openssl/bin:$PATH
+export PATH**=**$(pwd)/deps/luarocks/bin:$PATH
+
+检查依赖
+
+nginx -V 
+resty -v 
+openresty -V
+openssl version -a 
+luarocks --version
+
+## 安装kong
+
+git clone git@github.com:Kong/kong.git
+
+cd kong
+
+git checkout 2.3.2
+
+make install
+
+ export PATH**=**$(pwd)/kong/bin:$PATH
+
+kong version --vv 检查版本号
+
+kong命令报错
+
+ module '****' not found
+
+安装libyaml：yum install -y libyaml
+
 https://www.cnblogs.com/zhoujie/p/kong2.html
 https://www.cnblogs.com/chenjinxi/p/8724564.html
+
+
+
+# docker 安装(成功)
+
+https://registry.hub.docker.com/_/kong
+
+docker run -d --name kong-database                 -p 5432:5432                 -e "POSTGRES_USER=kong"   -e POSTGRES_HOST_AUTH_METHOD=trust"              -e "POSTGRES_DB=kong"                 postgres:9.6
+
+docker run --rm     --link kong-database:kong-database     -e "KONG_DATABASE=postgres"     -e "KONG_PG_HOST=kong-database"     -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database"     kong kong migrations bootstrap
+
+docker run -d --name kong1     --link kong-database:kong-database     -e "KONG_DATABASE=postgres"     -e "KONG_PG_HOST=kong-database"     -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database"     -e "KONG_PROXY_ACCESS_LOG=/dev/stdout"     -e "KONG_ADMIN_ACCESS_LOG=/dev/stdout"     -e "KONG_PROXY_ERROR_LOG=/dev/stderr"     -e "KONG_ADMIN_ERROR_LOG=/dev/stderr"     -e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl"     -p 8000:8000     -p 8443:8443     -p 8001:8001     -p 8444:8444     kong
+
+
 
 调kong的api  主要涉及consumer、auth key / hmac 、acl 这几个插件
 
