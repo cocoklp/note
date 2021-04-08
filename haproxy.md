@@ -1,4 +1,4 @@
-# 网站 
+# 网站
 
    https://www.haproxy.org/ （官方网站）
 
@@ -84,13 +84,13 @@ ExecStop=/bin/kill -s TERM $MAINPID
 [Install]
 WantedBy=multi-user.target
 
+
+```
+
 systemctl daemon-reload
 mkdir /etc/haproxy
 mkdir /var/lib/haproxy
 useradd -r -s /sbin/nologin -d /var/lib/haproxy/ haproxy
-```
-
-
 
 代理配置
 
@@ -642,6 +642,8 @@ done
 ifconfig eth0:1 172.16.92.2 netmask 255.255.255.0 up
 由于不再同一个网段需要添加路由(与vip交互的机器上）：
 增加路由:route add -net 172.16.92.0 netmask 255.255.255.0 gw 172.16.91.101
+注意：
+添加静态路由规则的时候，需要保证gateway(gw)的IP和eth0（本机IP）在同一个网段内。否则route add报错SIOCADDRT: Network is unreachable
 ```
 
 
@@ -693,3 +695,17 @@ frontend 怎么添加use_backend??？
 Add frontend,bind
 
 add backend,add server
+
+# 允许绑定非本机IP
+
+echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
+
+
+
+
+
+# keepalived + haproxy
+
+
+
+![img](https://img-blog.csdnimg.cn/20200616114902659.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk0NzI2Nw==,size_16,color_FFFFFF,t_70)
