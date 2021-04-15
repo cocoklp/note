@@ -123,3 +123,10 @@ Linux下sz下载文件超过4G
 # 查看centos版本
 
 cat /etc/redhat-releaseuname -a
+
+
+
+# 自定义systemctl服务
+
+https://www.cnblogs.com/fire909090/p/11303500.html
+

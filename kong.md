@@ -1,8 +1,18 @@
-kong
+# kong
 
-# 源码安装(失败)
+## 官网
 
-## 安装依赖包
+https://docs.konghq.com/
+
+https://docs.konghq.com/enterprise/2.3.x/admin-api/#service-object
+
+
+
+## 安装
+
+### 源码安装(失败)
+
+安装依赖包
 
 https://docs.konghq.com/install/source/
 
@@ -34,7 +44,7 @@ openresty -V
 openssl version -a 
 luarocks --version
 
-## 安装kong
+安装kong
 
 git clone git@github.com:Kong/kong.git
 
@@ -59,7 +69,7 @@ https://www.cnblogs.com/chenjinxi/p/8724564.html
 
 
 
-# docker 安装(成功)
+### docker 安装(成功)
 
 https://registry.hub.docker.com/_/kong
 
@@ -73,7 +83,33 @@ docker run -d --name kong1     --link kong-database:kong-database     -e "KONG_D
 
 调kong的api  主要涉及consumer、auth key / hmac 、acl 这几个插件
 
+## 原理
 
+proxy_listen：
+
+​	默认8000，接收公网流量并代理到upstream
+
+admin_listen：
+
+​	默认8001，配置
+
+### 术语
+
+client：客户端，访问kong proxy 端口的下游服务器
+
+upstream service：上游服务器，客户端请求转发到的地方。
+
+service：服务实体。上有服务器抽象。
+
+route：kong的路由实体。kong的入口。根据请求匹配已定义好的规则，路由给关联的service，每个route都关联一个service
+
+plugin：插件。通过admin api配置 全局、routes、services维度的插件。
+
+### 流程
+
+有请求到达后，与配置的route比较看是否能匹配，每个route都会关联service，kong会应用配置到route和service的插件，然后把流量代理到upstream。不匹配则返回404
+
+hosts  paths  methods 请求同时满足三个元素则匹配成功。host支持泛域名。
 
 8000：监听HTTP请求并将请求转发到上游服务器。
 
@@ -85,7 +121,26 @@ docker run -d --name kong1     --link kong-database:kong-database     -e "KONG_D
 
 ## service
 
-服务实体，上游服务器的抽象。一个service可以有多个route，匹配到的route就会转发到service里。可以执行一个target(物理服务)或upstream
+服务实体，上游服务器的抽象。一个service可以有多个route，匹配到的route就会转发到service里。可以执行一个target(物理服务)或upstream。
+
+```
+{
+    "id": "9748f662-7711-4a90-8186-dc02f10eb0f5",
+    "created_at": 1422386534,
+    "updated_at": 1422386534,
+    "name": "my-service",
+    "retries": 5,
+    "protocol": "http",
+    "host": "example.com",
+    "port": 80,
+    "path": "/some_api",
+    "connect_timeout": 60000,
+    "write_timeout": 60000,
+    "read_timeout": 60000,
+    "tags": ["user-level", "low-priority"],
+    "client_certificate": {"id":"4e3ad2e4-0bc4-4638-8e34-c84a417ba39b"}
+}
+```
 
 
 
@@ -118,9 +173,9 @@ curl -i -X POST --url http://localhost:8001/upstreams/ --data 'name=nhs.wilmar.s
 
 
 
-# admin api
+## admin api
 
-## service
+### service
 
 新增service
 
@@ -147,7 +202,7 @@ curl -X GET http://127.0.0.1:8001/services/773e3a07-fb7b-4459-93ed-b9fda63cd037
 GET /routes/{route id}/service
 ```
 
-## router
+### router
 
 定义匹配客户端请求的规则，匹配给定路由的每个请求将被代理到与之关联的服务。
 
@@ -173,7 +228,7 @@ GET /services/{service name or id}/routes
 
 
 
-## consumer object
+### consumer object
 
 服务的消费者或用户。依赖kong作为主要数据存储，也可以将用户自己管理的列表映射到该数据库consumer表。权限控制依赖这个表。
 
@@ -185,7 +240,7 @@ GET /services/{service name or id}/routes
 
 
 
-## plugin object
+### plugin object
 
 在http请求/响应生命周期期间执行的插件配置。身份验证、速率限制。
 
@@ -218,9 +273,9 @@ service:
 
 route for service:
 
-# 插件
+## 插件
 
-## ip-restriction
+### ip-restriction
 
 可以在service、router、consumer、全局四个维度添加黑白名单。ipv4、ipv6均支持。
 
@@ -258,52 +313,19 @@ https://www.imooc.com/article/288036
 
 
 
-## admin api
 
- 根据service_id获取route
+## 负载均衡
 
-curl -X GET http://127.0.0.1:8001/services/773e3a07-fb7b-4459-93ed-b9fda63cd037/routes
+创建upstream
 
+upstream中添加target
 
+创建service，host指向upstream name
 
-service：
+创建与service关联的route
 
-{"host":"10.12.4.71","created_at":1614190247,"connect_timeout":60000,"id":"f9debed0-e423-435e-82bb-61e233212545","protocol":"http","name":"klptest","read_timeout":60000,"port":9090,"path":null,"updated_at":1614190247,"retries":5,"write_timeout":60000,"tags":null,"client_certificate":null}
-
-route
-
-{"id":"e528cc4a-81de-4aab-9451-bc708b523863","path_handling":"v0","paths":["\/klp\/"],"destinations":null,"headers":null,"protocols":["http","https"],"methods":["GET"],"snis":null,"service":{"id":"f9debed0-e423-435e-82bb-61e233212545"},"name":"klptest_9090","strip_path":false,"preserve_host":false,"regex_priority":0,"updated_at":1614190247,"sources":null,"hosts":null,"https_redirect_status_code":426,"tags":null,"created_at":1614190247}
+如何绑定VIP？？？ 监听其他端口？？？
 
 
 
 
-
-
-
-创建service：
-
- curl -X POST http://127.0.0.1:8001/services --data "host=114.67.72.40" --data "protocol=http" --data "name=klptest" --data "port=9090"
-
-{"host":"10.12.4.71","created_at":1614190935,"connect_timeout":60000,"id":"50ff57cf-b4c9-4aba-95d6-6be674f6b364","protocol":"http","name":"klptest","read_timeout":60000,"port":9090,"path":null,"updated_at":1614190935,"retries":5,"write_timeout":60000,"tags":null,"client_certificate":null}
-
- 
-
-创建route
-
-curl -X POST http://127.0.0.1:8001/routes --data "name=klptest_9090" --data "paths=/klp/"  --data "protocols=http" --data "methods=GET" --data "service.id=50ff57cf-b4c9-4aba-95d6-6be674f6b364"
-
-{"id":"31a1925c-61dc-4673-a1a4-19a771cb2594","path_handling":"v0","paths":["\/klp\/"],"destinations":null,"headers":null,"protocols":["http"],"methods":["GET"],"snis":null,"service":{"id":"50ff57cf-b4c9-4aba-95d6-6be674f6b364"},"name":"klptest_9090","strip_path":true,"preserve_host":false,"regex_priority":0,"updated_at":1614191494,"sources":null,"hosts":null,"https_redirect_status_code":426,"tags":null,"created_at":1614191494}
-
-
-
-添加黑白名单
-
-route：
-
- curl -X POST http://127.0.0.1:8001/routes/31a1925c-61dc-4673-a1a4-19a771cb2594/plugins     --data "name=ip-restriction"     --data "config.blacklist=114.67.81.96"  
-
-全局指定route
-
-curl -X POST http://127.0.0.1:8001/plugins     --data "name=ip-restriction"     --data "config.blacklist=114.67.71.44"  --data "route.id=31a1925c-61dc-4673-a1a4-19a771cb2594"
-
-在路径中指定routeid和使用全局的接口在参数中指定routeid效果一样。

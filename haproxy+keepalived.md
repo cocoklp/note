@@ -1,4 +1,4 @@
-# 网站
+# haproxy
 
    https://www.haproxy.org/ （官方网站）
 
@@ -8,15 +8,19 @@
 
 
 
-# 负载均衡
 
-## 四层负载均衡
+
+## 负载均衡
+
+### 四层负载均衡
 
 根据ip和端口转发流量
 
 ![img](https://img-blog.csdn.net/20181025091707483)
 
-## 七层负载均衡
+
+
+### 七层负载均衡
 
 可以根据用户请求的内容将请求转发到不同的后端服务器。允许在一个ip+port下运行多个应用服务器。比如某个uri发到后端1，其他uri发到后端2.
 
@@ -24,7 +28,7 @@
 
 
 
-# haproxy部署
+## haproxy部署
 
 haproxy.org 下载安装包 （LTS长期支持稳定）
 
@@ -83,8 +87,6 @@ ExecStop=/bin/kill -s TERM $MAINPID
  
 [Install]
 WantedBy=multi-user.target
-
-
 ```
 
 systemctl daemon-reload
@@ -140,7 +142,7 @@ systemctl start haproxy
 
 
 
-# 配置
+## 配置说明
 
 - global
 
@@ -290,15 +292,19 @@ systemctl start haproxy
 
 - listen
 
-# haproxy重新加载配置
 
-## 重启
+
+## haproxy重新加载配置
+
+### 重启
 
 systemctl restart haproxy
 
 1. 连接多时容易卡死
 
-## hot-reload
+
+
+### hot-reload
 
 haproxy -f /etc/haproxy/haproxy.cfg -st
 
@@ -318,7 +324,7 @@ haproxy -f configuration.conf -c
 
 
 
-# 健康检查
+## 健康检查
 
 default backend listen 中使用以下配置，frontend中不可用。
 
@@ -352,9 +358,7 @@ option httpchk <method> <uri> <version>
 
 
 
-
-
-# dataplane
+## dataplane
 
 
 https://www.e-learn.cn/content/qita/2633565
@@ -365,19 +369,72 @@ http://114.67.72.40:9999/haproxy-status
 
 https://www.haproxy.com/documentation/hapee/1-9r1/reference/dataplaneapi/
 
-## 安装
+
+
+### 安装
 
 https://github.com/haproxytech/dataplaneapi
 
 下载源代码，然后make build，进入build后，
 
 ```
-./dataplaneapi --port 5555 -b /usr/sbin/haproxy -c /etc/haproxy/haproxy.cfg  -d 5 -r "service haproxy reload" -s "service haproxy restart" -u dataplaneapi -t /tmp/haproxy
+./dataplaneapi --host 0.0.0.0 --port 5555 -b /usr/sbin/haproxy -c /etc/haproxy/haproxy.cfg  -d 5 -r "service haproxy reload" -s "service haproxy restart" -u dataplaneapi -t /tmp/haproxy
 
 // -u dataplaneapi 要与 haproxy.conf 里的 userlist dataplaneapi一致
 ```
 
-## version VS transaction
+ 
+
+### 配置systemctl脚本
+
+/usr/lib/systemd/system/dataplaneapi.service
+
+```
+[Unit]
+Description= root
+After=network.target
+ 
+[Service]
+Type=forking
+#PIDFIle=/var/lib/dataplaneapi/dataplaneapi.pid
+ExecStart=/usr/local/datapaleapi/start.sh
+ExecReload=/usr/local/datapaleapi/restart.sh
+ExecStop=/usr/local/datapaleapi/stop.sh
+ 
+[Install]
+WantedBy=multi-user.target
+```
+
+ln  -s /home/k/code/dataplaneapi/build/dataplaneapi /usr/sbin/
+
+启动脚本
+
+```
+/usr/local/datapaleapi/start.sh
+#!/bin/bash
+nohup /usr/sbin/dataplaneapi --host 0.0.0.0 --port 5555 -b /usr/sbin/haproxy -c /etc/haproxy/haproxy.cfg -d 5 -r "haproxy -f /etc/haproxy/haproxy.cfg -sf" -s "service haproxy restart" -u dataplaneapi -t /tmp/haproxy -n 10 &
+
+/usr/local/datapaleapi/stop.sh
+#!/bin/bash
+killall dataplaneapi
+
+/usr/local/datapaleapi/restart.sh
+#!/bin/bash
+sh stop.sh
+sh start.sh
+
+chmod +x start.sh
+chmod +x stop.sh
+chmod +x restart.sh
+```
+
+
+
+
+
+
+
+### version VS transaction
 
 POST  PUT DELETE 等写方法，需要再url中添加version以防冲突，如果写的version与配置文件中不符，会返回version mismatch
 
@@ -387,7 +444,9 @@ transaction：
 
 ​	不同transaction之间是隔离的
 
-## 增加代理过程
+
+
+### 增加代理过程
 
 添加backend，给backend添加server，添加frontend并bind ip port，给frontend增加use_backend配置。
 
@@ -459,9 +518,7 @@ transaction：
 
    
 
-
-
-# base auth
+### base auth
 
 ```
 package main
@@ -625,7 +682,7 @@ func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error
 
 
 
-# 添加vip
+## 添加vip
 
 ```
 for i in {1..100}
@@ -696,11 +753,81 @@ Add frontend,bind
 
 add backend,add server
 
-# 允许绑定非本机IP
+## 允许绑定非本机IP
 
 echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
 
 
+
+# keepalived
+
+## 安装
+
+https://blog.csdn.net/bbwangj/article/details/80346428
+
+ yum -y install openssl-devel
+
+```
+1. [root@master src]# pwd
+2. /usr/local/src
+3. [root@master src]# wget http://www.keepalived.org/software/keepalived-2.0.7.tar.gz
+4. [root@master src]# tar xvf keepalived-2.0.7.tar.gz
+5. [root@master src]# cd keepalived-2.0.7
+6. [root@master keepalived-2.0.7]# ./configure --prefix=/usr/local/keepalived
+7. [root@master keepalived-2.0.7]# make && make install
+```
+
+
+
+## 启动 & 初始化
+
+```
+# keepalived启动脚本变量引用文件，默认文件路径是/etc/sysconfig/，也可以不做软链接，直接修改启动脚本中文件路径即可（安装目录下）
+[root@localhost /]# cp /usr/local/keepalived/etc/sysconfig/keepalived  /etc/sysconfig/keepalived 
+ 
+# 将keepalived主程序加入到环境变量（安装目录下）
+[root@localhost /]# cp /usr/local/keepalived/sbin/keepalived /usr/sbin/keepalived
+ 
+# keepalived启动脚本（源码目录下），放到/etc/init.d/目录下就可以使用service命令便捷调用
+[root@localhost /]# cp /usr/local/src/keepalived-2.0.7/keepalived/etc/init.d/keepalived  /etc/init.d/keepalived
+ 
+# 将配置文件放到默认路径下
+[root@localhost /]# mkdir /etc/keepalived
+[root@localhost /]# cp /usr/local/keepalived/etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf
+```
+
+
+
+```
+加为系统服务：chkconfig --add keepalived
+开机启动：chkconfig keepalived on
+查看开机启动的服务：chkconfig --list
+启动、关闭、重启service keepalived start|stop|restart
+```
+
+
+
+## 原理
+
+通过请求一个VIP来达到请求真实IP地址的功能，一台机器故障时，VIP可以自动漂移到另外一台机器，从而达到高可用（HA）。
+
+### VRRP
+
+virtual router redundancy protocol，虚拟路由器冗余协议。将可以承担网关功能的路由器加入到杯分组，形成一台虚拟路由器，由VRRP的选举机制决定哪台路由器承担转发任务。
+
+一种选择协议，一种容错协议。把到虚拟路由器的请求分配到vrrp路由器中的master，master不可用时，会选举出新的master。
+
+工作过程：
+
+1. master定期发送VRRP报文，通知backup自己工作正常。
+
+2. 抢占方式下，backup接收到VRRP报文后，将自己的优先级和报文中的优先级，如果大于报文中优先级则变成master。
+
+3. 非抢占时，只要master未出现故障，backup都不会升为master
+
+4. 如果backup定时器超时后仍未收到master的VRRP报文则认为master异常，backup会认为自己是master并对外发送VRRP报文，组内backup根据优先级选出新的master。
+
+   
 
 
 
@@ -709,3 +836,152 @@ echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
 
 
 ![img](https://img-blog.csdnimg.cn/20200616114902659.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk0NzI2Nw==,size_16,color_FFFFFF,t_70)
+
+
+
+master的keepalive.conf
+
+```
+! Configuration File for keepalived
+
+global_defs {
+   notification_email {
+  
+   }
+   router_id LVS_96
+   vrrp_skip_check_adv_addr
+   vrrp_garp_interval 0
+   vrrp_gna_interval 0
+}
+#健康检测脚本,必须声明在vrrp_instance节点前
+vrrp_script check_running {
+  script "/etc/keepalive/check.sh"
+  interval 2
+  weight 2
+}
+
+#vrrp实例设置
+vrrp_instance VI_1 {
+    state MASTER  #MASTER为主机
+    interface ens160  #虚拟ip绑定的网卡
+    virtual_router_id 99 #虚拟路由ID标识，一组的keepalived配置中主备都是设置一致
+    priority 100   #优先级，主机应高于备份机即可
+    advert_int 1 
+    authentication {
+        auth_type PASS #认证方式
+        auth_pass 123456  #认证密码
+    }
+    virtual_ipaddress {
+        172.30.204.31 #虚拟ip
+    }
+    trace_script {
+        check_running
+    }
+}
+```
+
+
+
+check脚本
+
+```
+#!/bin/bash
+A=`ps -C haproxy --no-header | wc -l`
+if [ $A -eq 0 ];then
+    systemctl start haproxy
+    sleep 3
+    if [ `ps -C haproxy --no-header |wc -l ` -eq 0 ];then
+            systemctl stop keepalived.service
+    fi
+fi
+
+```
+
+master的 haproxy.cfg
+
+```
+# _version=1
+# Dataplaneapi managed File
+# changing file directly can cause a conflict if dataplaneapi is running
+
+global 
+  daemon # 后台运行
+  chroot /apps/haproxy # chroot。dir为空且任何人不可写。安全性
+  user haproxy
+  group haproxy # /etc.group
+  nbproc 8
+  maxconn 100000
+  pidfile /var/lib/haproxy/haproxy.pid
+  stats socket /var/lib/haproxy/haproxy.sock mode 600 level admin
+  log 127.0.0.1 local0 info
+  spread-checks 3
+  # user group uid gid. 推荐为haproxy单独使用gid，user必须属于group
+
+defaults 
+  mode http
+
+userlist dataplaneapi 
+  user admin insecure-password 123456
+
+frontend tf1 
+  mode http
+  maxconn 2000
+  bind 172.30.204.31:82 name tf1
+  option http-keep-alive
+  default_backend tb1
+
+backend tb1 
+  mode http
+  balance roundrobin
+  option forwardfor
+  server test 172.30.204.108:896
+```
+
+
+
+backup的keepalive配置同master，把MASTER改为BACKUP，优先级改低，route_id修改.下面示例没有脚本
+
+```
+! Configuration File for keepalived
+
+global_defs {
+   notification_email {
+     #acassen@firewall.loc
+     #failover@firewall.loc
+     #sysadmin@firewall.loc
+   }
+   #notification_email_from Alexandre.Cassen@firewall.loc
+   #smtp_server 192.168.200.1
+   #smtp_connect_timeout 30
+   router_id LVS_107
+   vrrp_skip_check_adv_addr
+   vrrp_garp_interval 0
+   vrrp_gna_interval 0
+}
+
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface ens160
+    virtual_router_id 99
+    priority 90
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 123456
+    }
+    virtual_ipaddress {
+        172.30.204.31
+    }
+}
+```
+
+backup的proxy.cfg同master。
+
+测试阶段可以修改upstream地址，验证vip漂移成功。
+
+
+
+当master的haproxy异常时，脚本杀死keepalived，vip飘到backup。
+
+当vip和host在同网段时，外面可以直接访问vip，不能访问时，排查是否同网段，防火墙等。

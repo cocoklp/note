@@ -1,4 +1,4 @@
-安装
+# 安装
 
 https://blog.csdn.net/bbwangj/article/details/80346428
 
@@ -16,7 +16,7 @@ https://blog.csdn.net/bbwangj/article/details/80346428
 
 
 
-启动 & 初始化
+## 启动 & 初始化
 
 ```
 # keepalived启动脚本变量引用文件，默认文件路径是/etc/sysconfig/，也可以不做软链接，直接修改启动脚本中文件路径即可（安装目录下）
@@ -41,6 +41,8 @@ https://blog.csdn.net/bbwangj/article/details/80346428
 查看开机启动的服务：chkconfig --list
 启动、关闭、重启service keepalived start|stop|restart
 ```
+
+
 
 
 
