@@ -23,3 +23,10 @@ export GOPRIVATE=*.corp.example.com,rsc.io/private
 执行命令go mod vendor生成vendor文件夹，该文件夹下将会放置你go.mod文件描述的依赖包，文件夹下同时还有一个文件modules.txt，它是你整个工程的所有模块。在执行这条命令之前，如果你工程之前有vendor目录，应该先进行删除。同理go mod vendor -v会将添加到vendor中的模块打印出来；
 ```
 
+
+
+goland 
+
+settings->Go->Go Modules, enable Go Modules，proxy设置为 https://goproxy.cn,direct.
+
+打开terminal, go get -u 获取依赖包

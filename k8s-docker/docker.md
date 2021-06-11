@@ -338,3 +338,12 @@ docker rm <container-id>
 
 
 
+运行镜像：
+docker run --name=haapi --net=host  -d b9135808d8d2
+
+导出镜像
+docker save -o {filename} {image:tag}
+docker save -o opensigma-haproxy.tgz opensigma-haproxy:2.2.13
+
+导入镜像
+docker load -i opensigma-haproxy.tgz

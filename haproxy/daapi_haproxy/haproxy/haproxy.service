@@ -1,0 +1,13 @@
+[Unit]
+Description= root
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/app/haproxy.pid
+ExecStart=/app/haproxy -f /app/haproxy.cfg
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+
+[Install]
+WantedBy=multi-user.target

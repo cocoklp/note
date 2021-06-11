@@ -648,6 +648,12 @@ ifconfig eth0:1 172.16.92.2 netmask 255.255.255.0 up
 
 
 
+```
+本机访问自己的虚拟ip，无论是否同一网段，均不需要设置路由。
+```
+
+
+
 https://blog.csdn.net/u012599988/article/details/82683440
 
 ip addr del 10.1.1.1/24 dev ens33
@@ -709,3 +715,77 @@ echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
 
 
 ![img](https://img-blog.csdnimg.cn/20200616114902659.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk0NzI2Nw==,size_16,color_FFFFFF,t_70)
+
+
+
+# session
+
+https://blog.csdn.net/weixin_45537987/article/details/106759391
+
+## 源地址hash
+
+根据用户IP指定rs服务器
+
+当后端一台服务器挂了以后会造成部分session丢失
+
+```
+backend ***
+```
+	balance source
+	```
+```
+
+
+
+## cookie识别
+
+```
+backend ***
+	```
+	cookie SERVERID insert indirect nocache
+	server node1 ***
+	server node2 ***
+	```
+```
+
+如果客户端请求不带cookie，则请求被转发到任一可用服务器，并且haproxy把该服务器信息插入到响应中，如SERVERID=A，后续客户端再次请求时，携带该cookie，haproxy会将该cookie移除后转发给指定服务其。如果指定服务器不可用，则转发给其他web服务器并重新设置cookie字段。
+
+
+
+
+
+## 基于session
+
+haproxy将后端产生的session和后端服务器标识存在haproxy的一张表里，客户端请求时先查该表。
+
+```
+backend ***
+	```
+	appsession JSESSIONID len 64 timeout 5h request-learn
+	server node1 ***
+	server node2 ***
+	```
+```
+
+
+
+1. 如果使用http1.1 keep-alive，haproxy只在第一个响应中插入cookie，且达到服务器请求中的cookie不会被删除，所以要求后端服务器对来历不明的cookie不做敏感处理，否则需要关闭keep-alive
+
+```
+   option httpclose
+   ```
+
+   
+
+2. 如果禁用浏览器cookie功能，可以使用source负载均衡算法。
+
+3. 使用source算法时，因为haproxy对cookie的处理具有较高优先级，所以即使客户端是动态ip，只要可以接收cookie，对转发不会有影响。
+
+   
+
+
+
+
+
+
+   ```

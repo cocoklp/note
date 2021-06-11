@@ -1,0 +1,4 @@
+all:
+	docker build -t haproxy:2.2.13 .
+clean:
+

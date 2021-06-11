@@ -1,5 +1,7 @@
 # 安装
 
+## 在线安装
+
 https://www.postgresql.org/download/linux/redhat/
 
 安装完设置
@@ -21,6 +23,71 @@ host all all 0.0.0.0/0 md5
 如果不希望允许所有IP远程访问，则可以将上述配置项中的0.0.0.0设定为特定的IP值。
 
 然后systemctl restart postgresql-13
+
+
+
+## 离线安装
+
+https://www.cnblogs.com/sunalways/p/13817939.html
+
+下载地址：
+
+https://www.postgresql.org/download/
+
+下拉选择direct rpm download
+
+![image-20210512114201238](C:\Users\kouliping\AppData\Roaming\Typora\typora-user-images\image-20210512114201238.png)
+
+选择版本和系统
+
+![image-20210512114339006](C:\Users\kouliping\AppData\Roaming\Typora\typora-user-images\image-20210512114339006.png)
+
+
+
+![image-20210512114402297](C:\Users\kouliping\AppData\Roaming\Typora\typora-user-images\image-20210512114402297.png)
+
+下载以上rpm包，然后rpm -ivh安装
+
+```
+rpm -ivh postgresql13-libs-13.2-1PGDG.rhel7.x86_64.rpm 
+rpm -ivh postgresql13-13.2-1PGDG.rhel7.x86_64.rpm 
+rpm -ivh postgresql13-server-13.2-1PGDG.rhel7.x86_64.rpm 
+```
+
+初始化
+
+```
+/usr/pgsql-13/bin/postgresql-13-setup initdb
+```
+
+启动
+
+```
+systemctl enable postgresql-13
+systemctl start postgresql-13
+```
+
+修改ip和port信息
+
+```
+vi /var/lib/pgsql/12/data/postgresql.conf
+# *表示监听所有的ip信息，也可以使用localhost、127.0.0.1等
+listen_addresses = '*'  
+# 默认的监听端口为5432，也可以换为其它的
+port = 5432
+```
+
+
+
+ sudo -u postgres psql
+
+登陆后创建用户和db
+
+ create database mepm;
+
+create user mepm with password '123456';
+
+
 
 # 权限
 

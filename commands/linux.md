@@ -14,7 +14,10 @@
 	curl -i -w "@curl-format.txt" -o /dev/null -d "id=xxx&pwd=xxx" -X POST http://localhost:8080/api/login
 ```
 
+curl l -s -w ‘%{time_total}’  url
+
 # curl -w
+
 ​	诊断问题
 
 ```
@@ -239,4 +242,9 @@ local0~local7保留给本机用户使用
 在/etc/rsyslog.conf中增加配置
 local2.*  /var/log/test.log
 然后写 logger -p local2.info "hello world"（-p 指定优先级）,查看/var/log/test.log会看到 hello world的日志
+
+
+
+kill杀死多个进程
+ ps -ef|grep LOCAL=NO|grep -v grep|cut -c 9-15|xargs kill -9
 
